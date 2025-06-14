@@ -1,0 +1,111 @@
+openapi: 3.0.0
+paths:
+  /:
+    get:
+      operationId: AppController_getHello
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - App
+  /auth/signup:
+    post:
+      operationId: AuthController_signup
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpDto'
+      responses:
+        '201':
+          description: ''
+      summary: Register a new user
+      tags:
+        - Authentication
+  /auth/login:
+    post:
+      operationId: AuthController_login
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '201':
+          description: ''
+      summary: Login user
+      tags:
+        - Authentication
+info:
+  title: Test Project API
+  description: The Test Project API description
+  version: '1.0'
+  contact: {}
+tags: []
+servers: []
+components:
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+  schemas:
+    SignUpDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: john.doe@example.com
+        name:
+          type: string
+          example: John Doe
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        phone:
+          type: string
+          example: '+1234567890'
+        address:
+          type: string
+          example: 123 Main St
+        city:
+          type: string
+          example: New York
+        state:
+          type: string
+          example: NY
+        zip:
+          type: string
+          example: '10001'
+        country:
+          type: string
+          example: USA
+        password:
+          type: string
+          example: StrongP@ssw0rd
+      required:
+        - email
+        - name
+        - firstName
+        - lastName
+        - password
+    LoginDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: john.doe@example.com
+        password:
+          type: string
+          example: password
+      required:
+        - email
+        - password

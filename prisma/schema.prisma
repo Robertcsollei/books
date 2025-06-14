@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(dbgenerated("gen_ulid()")) @db.Char(26)
+  username      String
+  firstName String
+  lastName  String
+  phone     String?
+  address   String?
+  city      String?
+  state     String?
+  zip       String?
+  country   String?
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Bookmark {
+  id        String   @id @default(dbgenerated("gen_ulid()")) @db.Char(26)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  title       String
+  description String?
+  url         String
+  tags        String[]
+}
