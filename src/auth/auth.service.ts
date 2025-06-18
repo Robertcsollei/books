@@ -1,13 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { SignUpDto, LoginDto } from './dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as argon from 'argon2';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+
+type Token = {
+  access_token: string;
+};
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private jwtService: JwtService,
+    private configService: ConfigService,
+  ) {}
 
-  async signup(signUpDto: SignUpDto) {
+  async signup(signUpDto: SignUpDto): Promise<Token> {
     const hashedPassword = await argon.hash(signUpDto.password);
     const user = await this.prisma.user.create({
       data: {
@@ -25,10 +35,32 @@ export class AuthService {
         lastName: true,
       },
     });
-    return user;
+    return this.signToken(user.id, user.email);
   }
 
-  login(loginDto: LoginDto) {
-    return `Logging in user with email: ${loginDto.email}`;
+  async login(loginDto: LoginDto): Promise<Token> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: loginDto.email,
+      },
+    });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    const passwordMatch = await argon.verify(user.password, loginDto.password);
+    if (!passwordMatch) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    return this.signToken(user.id, user.email);
+  }
+
+  async signToken(userId: string, email: string): Promise<Token> {
+    const payload = { sub: userId, email };
+    const secret = this.configService.get('JWT_SECRET');
+    const token = await this.jwtService.signAsync(payload, {
+      expiresIn: '15m',
+      secret,
+    });
+    return { access_token: token };
   }
 }

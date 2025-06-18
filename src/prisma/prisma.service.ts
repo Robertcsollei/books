@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  constructor(private readonly configService: ConfigService) {
+  constructor(configService: ConfigService) {
     super({
       log: ['query', 'info', 'warn', 'error'],
       datasources: {
@@ -13,7 +13,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         },
       },
     });
-    console.log(this.configService.get('DATABASE_URL'));
+  }
+
+  cleanDb() {
+    return this.$transaction([this.bookmark.deleteMany(), this.user.deleteMany()]);
   }
 
   async onModuleInit() {
