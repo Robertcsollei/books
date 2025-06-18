@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { CommandFactory } from 'nest-commander';
+import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +17,9 @@ async function bootstrap() {
     }),
   );
 
+  // Global exception filter for Prisma errors
+  app.useGlobalFilters(new PrismaExceptionFilter());
+
   const config = new DocumentBuilder()
     .setTitle('Test Project API')
     .setDescription('The Test Project API description')
@@ -27,8 +32,7 @@ async function bootstrap() {
 
   // Custom Swagger UI options
   const customOptions = {
-    customCssUrl:
-      'https://unpkg.com/swagger-ui-themes@3.0.1/themes/3.x/theme-material.css',
+    customCssUrl: 'https://unpkg.com/swagger-ui-themes@3.0.1/themes/3.x/theme-material.css',
     swaggerOptions: {
       persistAuthorization: true,
       docExpansion: 'none',
@@ -37,6 +41,8 @@ async function bootstrap() {
   };
 
   SwaggerModule.setup('docs', app, document, customOptions);
+
+  await CommandFactory.run(AppModule, ['warn', 'error']);
 
   await app.listen(process.env.PORT ?? 3333);
 }
